@@ -1,98 +1,136 @@
-const apiKey = '28f03a7d662e4eaf58f85448481bd955'; // OpenWeather API Key
-let savedCities = []; // List of saved locations
+const apiKey = '28f03a7d662e4eaf58f85448481bd955'; // Your OpenWeather API Key
+let pinnedCities = [];
 
-// Add a city to the list
-function addCity() {
-  const city = document.getElementById('city').value.trim();
-  if (!city) {
-    alert('Please enter a city name!');
-    return;
-  }
-
-  // Prevent duplicates
-  if (savedCities.includes(city)) {
-    alert(`${city} is already in your saved locations!`);
-    return;
-  }
-
-  savedCities.push(city);
-  updateSavedLocations();
-  document.getElementById('city').value = ''; // Clear input field
-}
-
-// Update the saved locations display
-function updateSavedLocations() {
-  const locationList = document.getElementById('location-list');
-  locationList.innerHTML = ''; // Clear current list
-
-  savedCities.forEach(city => {
-    const li = document.createElement('li');
-    li.textContent = city;
-
-    const removeButton = document.createElement('button');
-    removeButton.textContent = 'Remove';
-    removeButton.onclick = () => removeCity(city);
-
-    li.appendChild(removeButton);
-    locationList.appendChild(li);
-  });
-}
-
-// Remove a city from the list
-function removeCity(city) {
-  savedCities = savedCities.filter(savedCity => savedCity !== city);
-  updateSavedLocations();
-}
-
-// Enable browser notifications
-function enableNotifications() {
+// Request notification permission when the page loads
+document.addEventListener('DOMContentLoaded', () => {
   if ('Notification' in window) {
-    Notification.requestPermission()
-      .then(permission => {
-        if (permission === 'granted') {
-          alert('Notifications enabled!');
-          startWeatherMonitoring();
-        } else {
-          alert('Notifications denied.');
-        }
-      })
-      .catch(err => console.error('Error enabling notifications:', err));
-  } else {
-    alert('Browser notifications are not supported on this device.');
-  }
-}
-
-// Start monitoring weather for saved cities
-function startWeatherMonitoring() {
-  setInterval(() => {
-    savedCities.forEach(city => {
-      fetchWeather(city);
+    Notification.requestPermission().then(permission => {
+      if (permission !== 'granted') {
+        alert('Notifications are disabled. Enable them for real-time updates.');
+      }
     });
-  }, 600000); // Check every 10 minutes
-}
+  }
+});
 
-// Fetch weather data and send notification
-async function fetchWeather(city) {
-  const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+async function getWeather() {
+  const city = document.getElementById('city').value;
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetch(url);
     const data = await response.json();
 
     if (data.cod === 200) {
-      sendNotification(city, data.weather[0].description, data.main.temp);
+      const weather = data.weather[0].main.toLowerCase();
+      const statusElement = document.getElementById('weather-status');
+      const ledElement = document.getElementById('led');
+      statusElement.textContent = `Weather in ${city}: ${data.weather[0].description}`;
+
+      // Update LED light based on weather
+      ledElement.className = 'led'; // Reset LED class
+      if (weather.includes('clear')) {
+        ledElement.classList.add('sunny');
+      } else if (weather.includes('rain')) {
+        ledElement.classList.add('rainy');
+      } else if (weather.includes('storm')) {
+        ledElement.classList.add('stormy');
+      } else {
+        ledElement.classList.add('gray');
+        statusElement.textContent += ' (No alert)';
+      }
+
+      // Enable pin button after successful weather fetch
+      document.getElementById('pinButton').disabled = false;
+    } else {
+      alert('City not found. Please try again.');
     }
   } catch (error) {
-    console.error(`Error fetching weather for ${city}:`, error);
+    console.error('Error fetching weather data:', error);
+    alert('An error occurred. Please try again later.');
   }
 }
 
-// Send a browser notification
-function sendNotification(city, description, temperature) {
-  if (Notification.permission === 'granted') {
-    const notification = new Notification(`Weather Update: ${city}`, {
-      body: `Current Weather: ${description}, Temp: ${temperature}°C`,
-      icon: 'https://openweathermap.org/img/wn/10d.png' // Example weather icon
+function pinCity() {
+  const city = document.getElementById('city').value;
+  const weatherStatus = document.getElementById('weather-status').textContent;
+
+  // Determine the LED color based on weather status
+  let ledClass = '';
+  if (weatherStatus.includes('clear')) {
+    ledClass = 'sunny';
+  } else if (weatherStatus.includes('rain')) {
+    ledClass = 'rainy';
+  } else if (weatherStatus.includes('storm')) {
+    ledClass = 'stormy';
+  } else {
+    ledClass = 'gray';
+  }
+
+  // Create a new pinned city object with LED class
+  const cityData = { city, weatherStatus, ledClass };
+
+  // Add the pinned city to the array
+  pinnedCities.push(cityData);
+
+  // Display pinned cities
+  updatePinnedCities();
+
+  // Send notification for the pinned city
+  sendNotification(city, weatherStatus);
+
+  // Clear the input field and reset the pin button
+  document.getElementById('city').value = '';
+  document.getElementById('pinButton').disabled = true;
+}
+
+function updatePinnedCities() {
+  const pinnedCitiesList = document.getElementById('pinnedCitiesList');
+  pinnedCitiesList.innerHTML = ''; // Clear current list
+
+  pinnedCities.forEach((city, index) => {
+    const li = document.createElement('li');
+    
+    // Create LED for pinned city
+    const led = document.createElement('div');
+    led.className = `led ${city.ledClass}`;
+
+    // Create city name and weather status
+    const cityName = document.createElement('div');
+    cityName.className = 'city-name';
+    cityName.textContent = city.city.toUpperCase();
+
+    const weatherStatus = document.createElement('div');
+    weatherStatus.className = 'weather-status';
+    weatherStatus.textContent = city.weatherStatus;
+
+    // Create remove button
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.className = 'remove-btn';
+    removeBtn.onclick = () => removeCity(index);
+
+    // Add LED, city name, weather status, and remove button to the list item
+    li.appendChild(led);
+    li.appendChild(cityName);
+    li.appendChild(weatherStatus);
+    li.appendChild(removeBtn);
+    
+    pinnedCitiesList.appendChild(li);
+  });
+}
+
+// Remove a pinned city
+function removeCity(index) {
+  pinnedCities.splice(index, 1);
+  updatePinnedCities();
+}
+
+// Send notification for a pinned city
+function sendNotification(city, weatherStatus) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const notification = new Notification('City Pinned!', {
+      body: `Weather in ${city}: ${weatherStatus}`,
+      icon: 'https://cdn-icons-png.flaticon.com/512/869/869636.png', // Example icon (replace with your own)
     });
 
     // Close the notification after 5 seconds
