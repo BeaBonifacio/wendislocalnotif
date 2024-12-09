@@ -1,42 +1,47 @@
 const apiKey = '28f03a7d662e4eaf58f85448481bd955'; // OpenWeather API Key
+let savedCities = []; // List of saved locations
 
-// Fetch weather data from OpenWeather API
-async function fetchWeather() {
+// Add a city to the list
+function addCity() {
   const city = document.getElementById('city').value.trim();
   if (!city) {
     alert('Please enter a city name!');
     return;
   }
 
-  const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-
-  try {
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    if (data.cod === 200) {
-      displayWeather(data);
-      sendNotification(city, data.weather[0].description, data.main.temp);
-    } else {
-      alert('City not found!');
-    }
-  } catch (error) {
-    console.error('Error fetching weather data:', error);
-    alert('Failed to fetch weather data. Please try again.');
+  // Prevent duplicates
+  if (savedCities.includes(city)) {
+    alert(`${city} is already in your saved locations!`);
+    return;
   }
+
+  savedCities.push(city);
+  updateSavedLocations();
+  document.getElementById('city').value = ''; // Clear input field
 }
 
-// Display weather data on the page
-function displayWeather(data) {
-  const location = document.getElementById('location');
-  const description = document.getElementById('weather-description');
-  const temperature = document.getElementById('temperature');
-  const humidity = document.getElementById('humidity');
+// Update the saved locations display
+function updateSavedLocations() {
+  const locationList = document.getElementById('location-list');
+  locationList.innerHTML = ''; // Clear current list
 
-  location.textContent = `Location: ${data.name}, ${data.sys.country}`;
-  description.textContent = `Weather: ${data.weather[0].description}`;
-  temperature.textContent = `Temperature: ${data.main.temp}°C`;
-  humidity.textContent = `Humidity: ${data.main.humidity}%`;
+  savedCities.forEach(city => {
+    const li = document.createElement('li');
+    li.textContent = city;
+
+    const removeButton = document.createElement('button');
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = () => removeCity(city);
+
+    li.appendChild(removeButton);
+    locationList.appendChild(li);
+  });
+}
+
+// Remove a city from the list
+function removeCity(city) {
+  savedCities = savedCities.filter(savedCity => savedCity !== city);
+  updateSavedLocations();
 }
 
 // Enable browser notifications
@@ -46,6 +51,7 @@ function enableNotifications() {
       .then(permission => {
         if (permission === 'granted') {
           alert('Notifications enabled!');
+          startWeatherMonitoring();
         } else {
           alert('Notifications denied.');
         }
@@ -56,11 +62,36 @@ function enableNotifications() {
   }
 }
 
+// Start monitoring weather for saved cities
+function startWeatherMonitoring() {
+  setInterval(() => {
+    savedCities.forEach(city => {
+      fetchWeather(city);
+    });
+  }, 600000); // Check every 10 minutes
+}
+
+// Fetch weather data and send notification
+async function fetchWeather(city) {
+  const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+  try {
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    if (data.cod === 200) {
+      sendNotification(city, data.weather[0].description, data.main.temp);
+    }
+  } catch (error) {
+    console.error(`Error fetching weather for ${city}:`, error);
+  }
+}
+
 // Send a browser notification
 function sendNotification(city, description, temperature) {
   if (Notification.permission === 'granted') {
-    const notification = new Notification('Weather Update', {
-      body: `Weather in ${city}: ${description}, ${temperature}°C`,
+    const notification = new Notification(`Weather Update: ${city}`, {
+      body: `Current Weather: ${description}, Temp: ${temperature}°C`,
       icon: 'https://openweathermap.org/img/wn/10d.png' // Example weather icon
     });
 
