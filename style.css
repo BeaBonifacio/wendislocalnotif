@@ -1,5 +1,5 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: Romans, sans-serif;
   margin: 0;
   padding: 0;
   display: flex;
@@ -18,64 +18,144 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-.weather-input {
+.weather-info {
   margin-top: 20px;
 }
 
-.weather-input input {
+input {
   padding: 10px;
   border: none;
   border-radius: 5px;
   width: 250px;
 }
 
-.weather-input button {
-  padding: 10px 20px;
+.button-container {
+  margin-top: 10px;
+}
+
+button {
+  padding: 8px 16px;
   background: #ffa500;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-left: 10px;
+  font-size: 14px;
+  margin: 5px;
 }
 
-.weather-input button:hover {
+button:hover {
   background: #ff7f00;
 }
 
-#saved-locations {
+#alert-display {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.led {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  background: gray;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+}
+
+.led.sunny {
+  background: yellow;
+  box-shadow: 0 0 20px yellow;
+}
+
+.led.rainy {
+  background: blue;
+  box-shadow: 0 0 20px blue;
+}
+
+.led.stormy {
+  background: red;
+  box-shadow: 0 0 20px red;
+}
+
+.led.gray {
+  background: gray;
+  box-shadow: 0 0 10px gray;
+}
+
+#weather-status {
+  font-size: 1.2rem;
+}
+
+.pinned-cities {
   margin-top: 20px;
 }
 
-#saved-locations ul {
+.pinned-cities ul {
   list-style: none;
   padding: 0;
 }
 
-#saved-locations li {
+.pinned-cities li {
+  margin-bottom: 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  margin: 5px 0;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 50px;
+  max-width: 300px;
+  margin: 5px auto;
 }
 
-#saved-locations button {
-  padding: 5px 10px;
-  background: #d9534f;
+.pinned-cities li .city-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.pinned-cities li .weather-status,
+.pinned-cities li .temperature,
+.pinned-cities li .humidity {
+  font-size: 12px;
+}
+
+.pinned-cities li .remove-btn {
+  background-color: red;
   color: white;
   border: none;
-  border-radius: 5px;
+  padding: 5px 10px;
   cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+  border-radius: 5px;
 }
 
-#saved-locations button:hover {
-  background: #c9302c;
+.pinned-cities li .remove-btn:hover {
+  background-color: darkred;
+}
+
+/* LED legend styles */
+.led-legends {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.led-legends .led {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.led-legends span {
+  font-size: 14px;
+  color: white;
+  font-weight: bold;
 }
