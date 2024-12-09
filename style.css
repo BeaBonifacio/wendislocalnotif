@@ -23,10 +23,6 @@ h1 {
   margin-bottom: 10px;
 }
 
-p {
-  margin: 10px 0;
-}
-
 .weather-input {
   margin-top: 20px;
 }
@@ -52,23 +48,34 @@ p {
   background: #ff7f00;
 }
 
-#weather-display {
+#saved-locations {
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 15px;
-  border-radius: 10px;
 }
 
-#notifications button {
-  padding: 10px 20px;
-  margin-top: 20px;
-  background: #28a745;
+#saved-locations ul {
+  list-style: none;
+  padding: 0;
+}
+
+#saved-locations li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 5px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+}
+
+#saved-locations button {
+  padding: 5px 10px;
+  background: #d9534f;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
-#notifications button:hover {
-  background: #218838;
+#saved-locations button:hover {
+  background: #c9302c;
 }
