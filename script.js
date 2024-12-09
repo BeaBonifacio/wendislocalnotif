@@ -2,15 +2,9 @@ const apiKey = '28f03a7d662e4eaf58f85448481bd955'; // Your OpenWeather API Key
 let pinnedCities = [];
 
 // Request notification permission when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-  if ('Notification' in window) {
-    Notification.requestPermission().then(permission => {
-      if (permission !== 'granted') {
-        alert('Notifications are disabled. Enable them for real-time updates.');
-      }
-    });
-  }
-});
+if (Notification.permission !== 'granted') {
+  Notification.requestPermission();
+}
 
 async function getWeather() {
   const city = document.getElementById('city').value;
@@ -75,7 +69,7 @@ function pinCity() {
   // Display pinned cities
   updatePinnedCities();
 
-  // Send notification for the pinned city
+  // Send a notification about the newly pinned city
   sendNotification(city, weatherStatus);
 
   // Clear the input field and reset the pin button
@@ -116,6 +110,9 @@ function updatePinnedCities() {
     li.appendChild(removeBtn);
     
     pinnedCitiesList.appendChild(li);
+
+    // Send notification when pinned city weather changes
+    sendNotification(city.city, city.weatherStatus);
   });
 }
 
@@ -125,15 +122,17 @@ function removeCity(index) {
   updatePinnedCities();
 }
 
-// Send notification for a pinned city
+// Function to send notifications to the user
 function sendNotification(city, weatherStatus) {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    const notification = new Notification('City Pinned!', {
-      body: `Weather in ${city}: ${weatherStatus}`,
-      icon: 'https://cdn-icons-png.flaticon.com/512/869/869636.png', // Example icon (replace with your own)
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(`Weather Update for ${city}`, {
+      body: weatherStatus,
+      icon: 'https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/widgets/logo_60x60.png',
     });
 
-    // Close the notification after 5 seconds
-    setTimeout(() => notification.close(), 5000);
+    // Close notification after 5 seconds
+    setTimeout(() => {
+      notification.close();
+    }, 5000);
   }
 }
